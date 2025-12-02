@@ -11,6 +11,7 @@
         [
             'header' => 'Gestión',
         ],
+//AQUI CREE MI BOTON DE ROLES Y PERMISOS
        [
         'name' => 'Roles y permisos',
         'icon' => 'fa-solid fa-shield-halved',
@@ -23,6 +24,14 @@
     'icon' => 'fas fa-users',
     'href' => route('admin.usuarios.index'),
     'active' => request()->routeIs('admin.usuarios.*')
+],
+//AQUI CREE MI BOTON DE MEMBRESIAS
+
+[
+    'name' => 'Membresías',
+    'icon' => 'fa-solid fa-address-book',
+    'href' => route('admin.membresias.index'),
+    'active' => request()->routeIs('admin.membresias.*')
 ],
     ];
 @endphp
