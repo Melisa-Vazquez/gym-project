@@ -1,5 +1,5 @@
 <x-admin-layout 
-    title="Usuarios | Editar | Healthify"
+    title="Usuarios | Editar | GYM Lixie"
     :breadcrumbs="[
         [
             'name' => 'Dashboard',
@@ -17,7 +17,8 @@
 
     <x-wireui-card>
 
-        <form action="{{ route('admin.usuarios.update', $user) }}" method="POST">
+        <form action="{{ route('admin.usuarios.update', ['usuario' => $user->id]) }}" method="POST">
+
             @csrf
             @method('PUT')
 
@@ -58,18 +59,51 @@
                 value="{{ old('address', $user->address) }}"
                 class="mt-4"
             />
+            
+            {{-- ID Number (Agregado para completar los campos comunes de usuario) --}}
+            <x-wireui-input 
+                label="Número de Identificación"
+                name="id_number"
+                placeholder="Identificación / Cédula"
+                value="{{ old('id_number', $user->id_number) }}"
+                class="mt-4"
+            />
 
-            {{-- Rol --}}
+            {{-- Rol (CON LA CORRECCIÓN DE PRESELECCIÓN) --}}
             <x-wireui-select
                 label="Rol"
                 name="role"
                 placeholder="Selecciona un rol"
-                :options="$roles"
+                :options="$roles->map(fn($role) => [
+                    'value' => $role->name,
+                    'name' => $role->name
+                ])->values()"
                 option-label="name"
-                option-value="name"
-                :selected="$user->getRoleNames()->first()"
+                option-value="value"
+                {{-- 🔑 Esto asegura que el rol actual del usuario ($roleName) se cargue --}}
+                :value="old('role', $roleName)" 
                 class="mt-4"
                 required
+            />
+
+            <h3 class="text-xl font-semibold mt-6 mb-2 border-t pt-4">Cambiar Contraseña (Opcional)</h3>
+
+            {{-- Contraseña --}}
+            <x-wireui-input 
+                label="Nueva Contraseña"
+                name="password"
+                type="password"
+                placeholder="Mínimo 8 caracteres"
+                class="mt-4"
+            />
+
+            {{-- Confirmación de Contraseña --}}
+            <x-wireui-input 
+                label="Confirmar Contraseña"
+                name="password_confirmation"
+                type="password"
+                placeholder="Repite la nueva contraseña"
+                class="mt-4"
             />
 
             <div class="flex justify-end mt-6">

@@ -73,7 +73,7 @@ class RoleController extends Controller
     {
 
  //restringir la accion para los primeros 4 roles fijos
-        if($role->id <=4){
+        if($role->id <=3){
             //variable de un solo uso para la alerta
             session()->flash('swal',
             [
@@ -87,6 +87,7 @@ class RoleController extends Controller
         }
 
         return view('admin.roles.edit', compact('role'));
+
 
     }
 
@@ -130,8 +131,8 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
 
-        //restringir la accion para los primeros 4 roles fijos
-        if($role->id <=4){
+        //restringir la accion para los primeros 3 roles fijos
+        if($role->id <=3){
             //variable de un solo uso para la alerta
             session()->flash('swal',
             [

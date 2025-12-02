@@ -1,4 +1,4 @@
-<x-admin-layout title="Roles | lovemedic" :breadcrumbs="[
+<x-admin-layout title="Roles | GYM Lixie" :breadcrumbs="[
 
     ['name' => 'Dashboard',
         'href' => route('admin.dashboard')

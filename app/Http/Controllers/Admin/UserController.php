@@ -25,11 +25,10 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role'     => ['required', Rule::in(Role::pluck('name')->toArray())],
-
+            'name'      => ['required', 'string', 'max:255'],
+            'email'     => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password'  => ['required', 'string', 'min:8', 'confirmed'],
+            'role'      => ['required', Rule::in(Role::pluck('name')->toArray())],
             'id_number' => ['nullable', 'string', 'max:50'],
             'phone'     => ['nullable', 'string', 'max:20'],
             'address'   => ['nullable', 'string', 'max:255'],
@@ -57,7 +56,7 @@ class UserController extends Controller
 
     public function edit(User $usuario)
     {
-        // 🔒 BLOQUEO: No permitir editar usuarios con rol ID = 1
+        // Protección
         if ($usuario->roles->contains('id', 1)) {
             session()->flash('swal', [
                 'icon'  => 'error',
@@ -68,16 +67,19 @@ class UserController extends Controller
         }
 
         $roles = Role::all();
-
+        // Obtiene el nombre del primer rol para precargar en el formulario
+        $roleName = $usuario->roles->first()?->name; 
+        
         return view('admin.usuarios.edit', [
             'user' => $usuario,
-            'roles' => $roles
+            'roles' => $roles,
+            'roleName' => $roleName
         ]);
     }
 
     public function update(Request $request, User $usuario)
     {
-        // 🔒 BLOQUEO: No permitir actualizar usuarios con rol ID = 1
+        // PROTECCIÓN
         if ($usuario->roles->contains('id', 1)) {
             session()->flash('swal', [
                 'icon'  => 'error',
@@ -88,19 +90,17 @@ class UserController extends Controller
         }
 
         $request->validate([
-            'name'  => ['required', 'string', 'max:255'],
-            'email' => [
+            'name'      => ['required', 'string', 'max:255'],
+            'email'     => [
                 'required',
                 'string',
                 'email',
                 'max:255',
                 Rule::unique('users')->ignore($usuario->id),
             ],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-
-            'roles' => ['nullable', 'array'],
-            'roles.*' => [Rule::in(Role::pluck('name')->toArray())],
-
+            
+            'password'  => ['nullable', 'string', 'min:8', 'confirmed'],
+            'role'      => ['required', Rule::in(Role::pluck('name')->toArray())],
             'id_number' => ['nullable', 'string', 'max:50'],
             'phone'     => ['nullable', 'string', 'max:20'],
             'address'   => ['nullable', 'string', 'max:255'],
@@ -114,7 +114,8 @@ class UserController extends Controller
 
         $usuario->update($data);
 
-        $usuario->syncRoles($request->roles ?? []);
+        // Sincroniza los roles
+        $usuario->syncRoles([$request->role]);
 
         session()->flash('swal', [
             'icon'  => 'success',
@@ -125,35 +126,75 @@ class UserController extends Controller
         return redirect()->route('admin.usuarios.index');
     }
 
-    public function destroy(User $usuario)
+    /**
+     * Alterna el estado (is_active) de un usuario específico (Método principal de cambio de estado).
+     */
+    public function activate(User $usuario)
     {
-        // 🔒 Impedir eliminar usuarios con rol protegido
-        if ($usuario->roles->contains('id', 1)) {
+        // 1. Protección de Rol: No permitir la modificación si tiene el rol 'Administrador'
+        if ($usuario->hasRole('Administrador')) {
             session()->flash('swal', [
                 'icon'  => 'error',
                 'title' => 'Acceso denegado',
-                'text'  => 'No se puede eliminar un usuario con un rol protegido.'
+                'text'  => 'No se puede modificar el estado de un usuario Administrador.'
             ]);
             return redirect()->route('admin.usuarios.index');
         }
 
-        // Evitar que el usuario se elimine a sí mismo
+        // 2. 🔑 PROTECCIÓN CLAVE: Evitar que el usuario logueado se modifique a sí mismo.
         if (auth()->id() === $usuario->id) {
             session()->flash('swal', [
                 'icon'  => 'error',
                 'title' => 'Error',
-                'text'  => 'No puedes eliminar tu propia cuenta.'
+                'text'  => 'No puedes modificar el estado de tu propia cuenta.'
             ]);
-
             return redirect()->route('admin.usuarios.index');
         }
 
-        $usuario->delete();
+        // 3. Alternar el estado
+        $newStatus = !$usuario->is_active;
+        $usuario->update(['is_active' => $newStatus]);
+        
+        $message = $newStatus ? 'activado' : 'desactivado';
 
         session()->flash('swal', [
             'icon'  => 'success',
-            'title' => 'Usuario eliminado correctamente',
-            'text'  => 'El usuario ha sido eliminado del sistema.'
+            'title' => 'Estado actualizado',
+            'text'  => "El usuario ha sido $message exitosamente."
+        ]);
+
+        return redirect()->route('admin.usuarios.index');
+    }
+    
+    public function destroy(User $usuario)
+    {
+        // 1. Protección de Rol: No permitir la modificación si tiene el rol 'Administrador'
+        if ($usuario->hasRole('Administrador')) {
+            session()->flash('swal', [
+                'icon'  => 'error',
+                'title' => 'Acceso denegado',
+                'text'  => 'No se puede desactivar ni eliminar el usuario Administrador.'
+            ]);
+            return redirect()->route('admin.usuarios.index');
+        }
+
+        // 2. 🔑 PROTECCIÓN CLAVE: Evitar que el usuario logueado se desactive a sí mismo.
+        if (auth()->id() === $usuario->id) {
+            session()->flash('swal', [
+                'icon'  => 'error',
+                'title' => 'Error',
+                'text'  => 'No puedes desactivar tu propia cuenta.'
+            ]);
+            return redirect()->route('admin.usuarios.index');
+        }
+
+        // 3. Desactivar el usuario (is_active = false)
+        $usuario->update(['is_active' => false]);
+
+        session()->flash('swal', [
+            'icon'  => 'success',
+            'title' => 'Usuario desactivado correctamente',
+            'text'  => 'El usuario ha sido desactivado del sistema.'
         ]);
 
         return redirect()->route('admin.usuarios.index');

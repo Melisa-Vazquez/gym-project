@@ -1,4 +1,4 @@
-<x-admin-layout title="Usuarios | Crear Nuevo | Healthify" :breadcrumbs="[
+<x-admin-layout title="Usuarios | Crear Nuevo | GYM Lixie" :breadcrumbs="[
     [
         'name' => 'Dashboard',
         'href' => route('admin.dashboard'),

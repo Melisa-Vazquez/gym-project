@@ -1,4 +1,4 @@
-<x-admin-layout title="Membresías | Nuevo Plan | Healthify" :breadcrumbs="[
+<x-admin-layout title="Membresías | Nuevo Plan | GYM Lixie" :breadcrumbs="[
     [
         'name' => 'Dashboard',
         'href' => route('admin.dashboard'),
