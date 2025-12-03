@@ -132,9 +132,6 @@ php artisan db:seed
 # Desarrollo
 npm run dev
 
-# Producción
-npm run build
-\`\`\`
 
 ### 8. Iniciar Servidor
 
@@ -339,8 +336,6 @@ php artisan livewire:list
 ### Producción
 
 \`\`\`bash
-# Optimizar aplicación
-php artisan optimize
 
 # Compilar assets para producción
 npm run build
@@ -374,10 +369,9 @@ public function run(): void
 ### RoleSeeder
 
 Crea los roles básicos del sistema:
-- Admin
-- Usuario
-- Entrenador
-- Recepcionista
+- Administrador
+- Staff
+- Cliente
 
 ### UserSeeder
 

@@ -4,28 +4,20 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\MembresiaController;
 use Illuminate\Support\Facades\Route;
 
-// Ruta base del Dashboard
 Route::get('/', function () {
     return view('admin.dashboard');
-})->name('dashboard');
+})->name('dashboard'); // admin.dashboard
 
-// --- GRUPOS DE RUTAS PROTEGIDAS POR AUTORIZACIÓN (GATES) ---
-
-// GESTIÓN DE ROLES
-Route::middleware(['can:manage-roles'])->group(function () {
-    Route::resource('roles', RoleController::class);
+Route::middleware(['role:Administrador'])->group(function () {
+    Route::resource('roles', RoleController::class); // admin.roles.*
 });
 
-// 🔑 GESTIÓN DE USUARIOS (CORREGIDO)
-Route::middleware(['can:manage-users'])->group(function () {
-    // 1. Rutas CRUD estándar
-    Route::resource('usuarios', UserController::class);
-
-    Route::patch('/admin/usuarios/{usuario}/toggle', [UserController::class, 'toggle'])
-    ->name('admin.usuarios.toggle');
-
+Route::middleware(['role:Administrador,Staff'])->group(function () {
+    Route::resource('usuarios', UserController::class); // admin.usuarios.*
+    Route::patch('/usuarios/{usuario}/toggle', [UserController::class, 'toggle'])
+        ->name('usuarios.toggle'); // admin.usuarios.toggle
 });
-// GESTIÓN DE MEMBRESIAS
-Route::middleware(['can:manage-membresias'])->group(function () {
-    Route::resource('membresias', MembresiaController::class);
+
+Route::middleware(['role:Administrador,Staff'])->group(function () {
+    Route::resource('membresias', MembresiaController::class); // admin.membresias.*
 });

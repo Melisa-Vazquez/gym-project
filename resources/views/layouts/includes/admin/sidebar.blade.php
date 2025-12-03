@@ -1,38 +1,48 @@
 @php
     use Illuminate\Support\Str;
 
+    $user = auth()->user();
+
     $links = [
         [
             'name' => 'Dashboard',
             'icon' => 'fa-solid fa-gauge',
             'href' => route('admin.dashboard'),
             'active' => request()->routeIs('admin.dashboard'),
+            'roles' => ['Administrador', 'Staff', 'Cliente'], // todos lo ven
         ],
+
         [
             'header' => 'Gestión',
+            'roles' => ['Administrador', 'Staff'], // solo admin y staff ven la sección "Gestión"
         ],
-//AQUI CREE MI BOTON DE ROLES Y PERMISOS
-       [
-        'name' => 'Roles y permisos',
-        'icon' => 'fa-solid fa-shield-halved',
-    'href' => route('admin.roles.index'),
-    'active' => request()->routeIs('admin.roles.*'),
-], 
-//AQUI CREE MI BOTON DE USUARIOS
-[
-    'name' => 'Usuarios',
-    'icon' => 'fas fa-users',
-    'href' => route('admin.usuarios.index'),
-    'active' => request()->routeIs('admin.usuarios.*')
-],
-//AQUI CREE MI BOTON DE MEMBRESIAS
 
-[
-    'name' => 'Membresías',
-    'icon' => 'fa-solid fa-address-book',
-    'href' => route('admin.membresias.index'),
-    'active' => request()->routeIs('admin.membresias.*')
-],
+        // SOLO ADMIN
+        [
+            'name' => 'Roles y permisos',
+            'icon' => 'fa-solid fa-shield-halved',
+            'href' => route('admin.roles.index'),
+            'active' => request()->routeIs('admin.roles.*'),
+            'roles' => ['Administrador'],
+        ],
+
+        // ADMIN y STAFF
+        [
+            'name' => 'Usuarios',
+            'icon' => 'fas fa-users',
+            'href' => route('admin.usuarios.index'),
+            'active' => request()->routeIs('admin.usuarios.*'),
+            'roles' => ['Administrador', 'Staff'],
+        ],
+
+        // ADMIN y STAFF
+        [
+            'name' => 'Membresías',
+            'icon' => 'fa-solid fa-address-book',
+            'href' => route('admin.membresias.index'),
+            'active' => request()->routeIs('admin.membresias.*'),
+            'roles' => ['Administrador', 'Staff'],
+        ],
     ];
 @endphp
 
@@ -44,7 +54,15 @@
 
     <div class="p-4 overflow-y-auto">
         <ul class="space-y-2 text-sm font-medium text-gray-900 dark:text-white">
+
             @foreach ($links as $link)
+
+                {{-- 🔥 Filtrar según roles --}}
+                @if (isset($link['roles']) && !$user->hasAnyRole($link['roles']))
+                    @continue
+                @endif
+
+                {{-- 🔹 Header --}}
                 @isset($link['header'])
                     <div class="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 mt-4">
                         {{ $link['header'] }}
@@ -52,9 +70,12 @@
                     @continue
                 @endisset
 
-                {{-- Submenu --}}
+                {{-- 🔹 Submenú --}}
                 @if (isset($link['submenu']))
-                    @php $menuId = Str::slug($link['name']); @endphp
+                    @php 
+                        $menuId = Str::slug($link['name']); 
+                    @endphp
+
                     <li x-data="{ open: true }">
                         <div class="relative">
                             <button @click="open = !open"
@@ -66,7 +87,7 @@
                                 <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform"
                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
+                                        d="M19 9l-7 7-7 -7" />
                                 </svg>
                             </button>
 
@@ -82,8 +103,9 @@
                             </ul>
                         </div>
                     </li>
+
                 @else
-                    {{-- Enlace normal --}}
+                    {{-- 🔹 Enlace normal --}}
                     <li>
                         <a href="{{ $link['href'] }}"
                             class="flex items-center px-3 py-2 space-x-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 {{ $link['active'] ? 'bg-gray-200 dark:bg-gray-700 font-semibold' : '' }}">
@@ -92,8 +114,9 @@
                         </a>
                     </li>
                 @endif
+
             @endforeach
+
         </ul>
     </div>
 </aside>
-
